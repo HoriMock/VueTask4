@@ -4,6 +4,7 @@ import {
   getAuth,
   createUserWithEmailAndPassword,
   updateProfile,
+  signInWithEmailAndPassword,
 } from "firebase/auth";
 
 Vue.use(Vuex);
@@ -59,6 +60,17 @@ export default new Vuex.Store({
           console.log("ユーザ登録完了");
           commit("setUser", userCredencial.user);
           commit("clearInputForm", "");
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    },
+    login({ commit }, { email, password }) {
+      const auth = getAuth();
+      signInWithEmailAndPassword(auth, email, password)
+        .then((userCredencial) => {
+          console.log("ログイン成功");
+          commit("setUser", userCredencial.user);
         })
         .catch((error) => {
           console.log(error);
