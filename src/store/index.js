@@ -1,11 +1,19 @@
 import Vue from "vue";
 import Vuex from "vuex";
+import router from "../router";
 import {
   getAuth,
   createUserWithEmailAndPassword,
   updateProfile,
   signInWithEmailAndPassword,
 } from "firebase/auth";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 
 Vue.use(Vuex);
 
@@ -15,11 +23,13 @@ export default new Vuex.Store({
     email: "",
     password: "",
     user: null,
+    loginUserData: [],
   },
   getters: {
     userName: (state) => state.userName,
     email: (state) => state.email,
     password: (state) => state.password,
+    data: (state) => state.loginUserData,
   },
   mutations: {
     inputUserName(state, userName) {
@@ -38,6 +48,9 @@ export default new Vuex.Store({
       state.userName = empty;
       state.email = empty;
       state.password = empty;
+    },
+    setData(state, documentData) {
+      state.loginUserData = documentData;
     },
   },
   actions: {
@@ -71,10 +84,29 @@ export default new Vuex.Store({
         .then((userCredencial) => {
           console.log("ログイン成功");
           commit("setUser", userCredencial.user);
+          router.push("/");
         })
         .catch((error) => {
           console.log(error);
         });
+    },
+    async getLoginUserData({ commit }) {
+      try {
+        const db = getFirestore();
+        const auth = getAuth();
+        const q = query(
+          collection(db, "users"),
+          where("uid", "==", auth.currentUser.uid)
+        );
+        const querySnapshot = await getDocs(q);
+        const array = [];
+        querySnapshot.forEach((doc) => {
+          array.push(doc.data());
+        });
+        commit("setData", array);
+      } catch (error) {
+        console.log(error);
+      }
     },
   },
 });
