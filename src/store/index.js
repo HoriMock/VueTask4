@@ -99,9 +99,8 @@ export default new Vuex.Store({
           where("uid", "==", auth.currentUser.uid)
         );
         const querySnapshot = await getDocs(q);
-        const array = [];
-        querySnapshot.forEach((doc) => {
-          array.push(doc.data());
+        const array = querySnapshot.map((doc) => {
+          return array.push(doc.data());
         });
         commit("setData", array);
       } catch (error) {

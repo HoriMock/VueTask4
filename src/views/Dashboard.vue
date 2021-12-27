@@ -4,7 +4,6 @@
     <p class="wallet" v-for="data in loginUserData" :key="data.id">
       残高：{{ data.wallet }}
     </p>
-    <!-- <button @click="getUserData">データの中確認</button> -->
   </div>
 </template>
 
