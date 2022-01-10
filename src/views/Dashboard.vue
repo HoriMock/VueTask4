@@ -1,9 +1,10 @@
 <template>
   <div>
-    <p class="user-name">{{ user.displayName }}さんようこそ！！</p>
+    <p class="user-name" v-if="user">{{ user.displayName }}さんようこそ！！</p>
     <p class="wallet" v-for="data in loginUserData" :key="data.id">
       残高：{{ data.wallet }}
     </p>
+    <button @click="logout">ログアウト</button>
   </div>
 </template>
 
@@ -13,13 +14,14 @@ import { mapState } from "vuex";
 export default {
   created() {
     this.$store.dispatch("getLoginUserData");
+    this.$store.dispatch("onAuth");
   },
   computed: {
-    ...mapState(["user", "loginUserData"]),
+    ...mapState(["user", "loginUserData", "uid"]),
   },
   methods: {
-    setUser() {
-      this.$store.dispatch("setUser", this.user);
+    logout() {
+      this.$store.dispatch("logout");
     },
   },
 };
@@ -31,5 +33,8 @@ p {
 }
 .user-name {
   margin-right: 200px;
+}
+.wallet {
+  margin-right: 10px;
 }
 </style>
