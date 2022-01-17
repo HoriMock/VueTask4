@@ -6,6 +6,8 @@ import {
   createUserWithEmailAndPassword,
   updateProfile,
   signInWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut,
 } from "firebase/auth";
 import {
   getFirestore,
@@ -14,22 +16,28 @@ import {
   query,
   where,
 } from "firebase/firestore";
+import createPersistedState from "vuex-persistedstate";
+
+const initialState = {
+  user: null,
+  loginUserData: [],
+};
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
   state: {
+    initialState,
     userName: "",
     email: "",
     password: "",
-    user: null,
-    loginUserData: [],
+    uid: "",
   },
   getters: {
     userName: (state) => state.userName,
     email: (state) => state.email,
     password: (state) => state.password,
-    data: (state) => state.loginUserData,
+    loginUserData: (state) => state.loginUserData,
   },
   mutations: {
     inputUserName(state, userName) {
@@ -43,6 +51,7 @@ export default new Vuex.Store({
     },
     setUser(state, payload) {
       state.user = payload;
+      state.uid = payload.uid;
     },
     clearInputForm(state, empty) {
       state.userName = empty;
@@ -93,10 +102,9 @@ export default new Vuex.Store({
     async getLoginUserData({ commit }) {
       try {
         const db = getFirestore();
-        const auth = getAuth();
         const q = query(
           collection(db, "users"),
-          where("uid", "==", auth.currentUser.uid)
+          where("uid", "==", this.state.uid)
         );
         const querySnapshot = await getDocs(q);
         const array = querySnapshot.docs.map((doc) => doc.data());
@@ -105,5 +113,28 @@ export default new Vuex.Store({
         console.log(error);
       }
     },
+    logout() {
+      const auth = getAuth();
+      signOut(auth)
+        .then(() => {
+          console.log("ログアウト成功");
+          router.push("/login", () => {});
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    },
+    onAuth({ commit }) {
+      const auth = getAuth();
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          commit("setUser", user);
+        } else {
+          console.log("ログインしていません");
+          router.push("/login", () => {});
+        }
+      });
+    },
   },
+  plugins: [createPersistedState()],
 });
